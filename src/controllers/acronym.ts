@@ -22,7 +22,7 @@ export const get = async (req: Request, res: Response, next: NextFunction) => {
       },
       query = queryBuilder(req.query);
 
-    const acrm: Acronymum[] = await Acronym.default.aggregate([
+    const acrm = await Acronym.default.aggregate([
       { $match: query },
       { $sort: { acronym: -1 } },
       {
@@ -37,9 +37,9 @@ export const get = async (req: Request, res: Response, next: NextFunction) => {
       },
     ]);
 
-    return res.status(200).send({
-      acronym: acrm,
-    });
+    res.set("last", (acrm[0].metadata[0].total - limit).toString());
+
+    return res.status(200).send(acrm[0].data);
   } catch (e) {
     console.log(e);
   }
