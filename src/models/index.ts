@@ -1,0 +1,1 @@
+export * as Acronym from './Acronym'
