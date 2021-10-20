@@ -13,25 +13,32 @@ const queryBuilder = (query: any) => {
   return newQuery;
 };
 
-export const get = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const get = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // You also can use mongoose-paginate to automatically paginate instead.
     const { from, limit } = {
         from: parseInt(req?.query?.from?.toString(), 10) || 1,
         limit: parseInt(req?.query?.limit?.toString(), 10) || 50,
       },
-      query = queryBuilder(req.query),
-      acr: Acronymum[] = await Acronym.default
-        .find(query)
-        .limit(limit)
-        .skip((from - 1) * limit);
+      query = queryBuilder(req.query);
+
+    const acrm: Acronymum[] = await Acronym.default.aggregate([
+      { $match: query },
+      { $sort: { acronym: -1 } },
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $skip: (from - 1) * limit },
+            { $limit: limit },
+            { $project: { _id: 0 } },
+          ],
+        },
+      },
+    ]);
 
     return res.status(200).send({
-      acronym: acr,
+      acronym: acrm,
     });
   } catch (e) {
     console.log(e);
