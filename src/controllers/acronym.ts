@@ -19,12 +19,13 @@ export const get = async (
   next: NextFunction
 ) => {
   try {
+    // You also can use mongoose-paginate to automatically paginate instead.
     const { from, limit } = {
         from: parseInt(req?.query?.from?.toString(), 10) || 1,
         limit: parseInt(req?.query?.limit?.toString(), 10) || 50,
       },
       query = queryBuilder(req.query),
-      acr = await Acronym.default
+      acr: Acronymum[] = await Acronym.default
         .find(query)
         .limit(limit)
         .skip((from - 1) * limit);
